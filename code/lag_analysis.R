@@ -7,8 +7,8 @@ setwd("../")
 # 
 # # Set up columns to keep from large dataset
 # keep = c(
-#   "Year", "CommitmentDate", "ExpectedStartDate", "CompletionDate", "DonorName",
-#   "RecipientName", "DERecipientcode", "SectorName", "FlowName",
+#   "Year", "CommitmentDate", "ExpectedStartDate", "CompletionDate", "DonorName", "DonorCode",
+#   "RecipientName", "DERecipientcode", "SectorName", "SectorCode", "FlowName", "FlowCode",
 #   "USD_Disbursement", "USD_Disbursement_Defl",
 #   "USD_Commitment", "USD_Commitment_Defl"
 # )
@@ -32,11 +32,12 @@ load("large_input/crs.RData")
 
 # Calculate commitment year
 crs$CommitmentYear = as.numeric(substr(crs$CommitmentDate, 1, 4))
+crs = subset(crs, !is.na(CommitmentYear))
 
 # Calculate commitment sum table
 commitment_sum_table = crs[,.(
   USD_Commitment_Defl=sum(USD_Commitment_Defl, na.rm=T)
-), by=.(Year)]
+), by=.(Year, SectorCode)]
 setnames(commitment_sum_table, "Year", "CommitmentYear")
 
 # For each year, calculate the expected disbursement
@@ -46,18 +47,29 @@ expected_value_list = list()
 expected_value_index = 1
 for(year in analysis_years){
   all_committed_this_year = subset(crs, CommitmentYear == year)
-  total_disbursed_by_commitments_this_year = sum(all_committed_this_year$USD_Disbursement_Defl, na.rm=T)
-  total_commitment_in_this_year = commitment_sum_table[which(commitment_sum_table$CommitmentYear == year),"USD_Commitment_Defl"][[1]]
-  expected_df = data.frame(
-    Year=year,
-    USD_Disbursement=total_disbursed_by_commitments_this_year,
-    USD_Expected_Disbursement=total_commitment_in_this_year
+  total_disbursed_by_commitments_this_year = all_committed_this_year[,.(USD_Disbursement_Defl=sum(USD_Disbursement_Defl, na.rm=T)), by=.(SectorCode)]
+  total_commitment_in_this_year = commitment_sum_table[which(commitment_sum_table$CommitmentYear == year),]
+  expected_df = merge(
+    total_disbursed_by_commitments_this_year,
+    total_commitment_in_this_year,
+    by=c("SectorCode"),
+    all=T
   )
   expected_value_list[[expected_value_index]] = expected_df
   expected_value_index = expected_value_index + 1
   message(year)
 }
 
-aid_debt_df = rbindlist(expected_value_list)
-aid_debt_df$aid_debt_ratio = aid_debt_df$USD_Disbursement / aid_debt_df$USD_Expected_Disbursement
+sector_codelist = unique(crs[,c("SectorCode", "SectorName")])
 
+aid_debt_df = rbindlist(expected_value_list)
+aid_debt_df$USD_Disbursement_Defl[which(is.na(aid_debt_df$USD_Disbursement_Defl))] = 0
+aid_debt_df$USD_Commitment_Defl[which(is.na(aid_debt_df$USD_Commitment_Defl))] = 0
+aid_debt_df$aid_debt_ratio = aid_debt_df$USD_Disbursement_Defl / aid_debt_df$USD_Commitment_Defl
+aid_debt_df = merge(aid_debt_df, sector_codelist)
+
+aid_debt_agg = aid_debt_df[,.(USD_Disbursement_Defl=sum(USD_Disbursement_Defl), USD_Commitment_Defl=sum(USD_Commitment_Defl)), by=.(SectorCode)]
+aid_debt_agg$aid_debt_ratio = aid_debt_agg$USD_Disbursement_Defl / aid_debt_agg$USD_Commitment_Defl
+
+aid_debt_agg = merge(aid_debt_agg, sector_codelist)
+fwrite(aid_debt_agg, "output/aid_debt_by_sector.csv")
