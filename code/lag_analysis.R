@@ -35,7 +35,7 @@ crs$CommitmentYear = as.numeric(substr(crs$CommitmentDate, 1, 4))
 
 # Calculate commitment sum table
 commitment_sum_table = crs[,.(
-  USD_Commitment=sum(USD_Commitment, na.rm=T)
+  USD_Commitment_Defl=sum(USD_Commitment_Defl, na.rm=T)
 ), by=.(Year)]
 setnames(commitment_sum_table, "Year", "CommitmentYear")
 
@@ -45,36 +45,13 @@ analysis_years = 2012:2022
 expected_value_list = list()
 expected_value_index = 1
 for(year in analysis_years){
-  commitment_range = year - 10
-  year_subset = subset(crs, Year==year & CommitmentYear >= commitment_range)
-  year_disbursements_by_comitted_year = year_subset[,.(
-    USD_Disbursement=sum(USD_Disbursement, na.rm=T),
-    USD_Commitment_actual=sum(USD_Commitment, na.rm=T)
-  ), by=.(CommitmentYear)]
-  year_disbursement_sum = sum(year_disbursements_by_comitted_year$USD_Disbursement, na.rm=T)
-  year_disbursements_by_comitted_year$percentage = 
-    year_disbursements_by_comitted_year$USD_Disbursement / 
-    year_disbursement_sum
-  year_disbursements_by_comitted_year = merge(
-    year_disbursements_by_comitted_year,
-    commitment_sum_table,
-    by="CommitmentYear",
-    all.x=T
-  )
-  year_disbursements_by_comitted_year$USD_Commitment_expected_contribution = 
-    year_disbursements_by_comitted_year$USD_Commitment * 
-    year_disbursements_by_comitted_year$percentage
-  expected_disbursement = sum(
-    year_disbursements_by_comitted_year$USD_Commitment_expected_contribution,
-    na.rm=T
-  )
-  current_year = year_disbursements_by_comitted_year[which(CommitmentYear==year),]
-  error_rate = abs(current_year$USD_Commitment_expected_contribution - current_year$USD_Commitment_actual) / current_year$USD_Commitment_actual
+  all_committed_this_year = subset(crs, CommitmentYear == year)
+  total_disbursed_by_commitments_this_year = sum(all_committed_this_year$USD_Disbursement_Defl, na.rm=T)
+  total_commitment_in_this_year = commitment_sum_table[which(commitment_sum_table$CommitmentYear == year),"USD_Commitment_Defl"][[1]]
   expected_df = data.frame(
     Year=year,
-    USD_Disbursement=year_disbursement_sum,
-    USD_Expected_Disbursement=expected_disbursement,
-    error_rate=error_rate
+    USD_Disbursement=total_disbursed_by_commitments_this_year,
+    USD_Expected_Disbursement=total_commitment_in_this_year
   )
   expected_value_list[[expected_value_index]] = expected_df
   expected_value_index = expected_value_index + 1
