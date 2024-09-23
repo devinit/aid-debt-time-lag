@@ -1,4 +1,4 @@
-lapply(c("data.table", "rstudioapi", "XML", "httr"), require, character.only = T)
+lapply(c("data.table", "rstudioapi", "XML", "httr", "scales"), require, character.only = T)
 setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
@@ -31,8 +31,11 @@ setwd("../")
 load("large_input/crs.RData")
 
 # Calculate commitment year
+pre_subset_sum = sum(crs$USD_Disbursement_Defl, na.rm=T)
 crs$CommitmentYear = as.numeric(substr(crs$CommitmentDate, 1, 4))
 crs = subset(crs, !is.na(CommitmentYear))
+post_subset_sum = sum(crs$USD_Disbursement_Defl, na.rm=T)
+percent(post_subset_sum/pre_subset_sum)
 
 # Calculate commitment sum table
 commitment_sum_table = crs[,.(
