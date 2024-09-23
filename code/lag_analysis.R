@@ -228,23 +228,28 @@ adapt_map = c(
 climate_adapt_recent_crs_disb$label = adapt_map[
   as.character(climate_adapt_recent_crs_disb$ClimateAdaptation)
 ]
-lag_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label)]
-lag_by_adaptation = subset(lag_by_adaptation, !is.nan(mean_lag))
+lag_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label, FlowName)]
+lag_by_adaptation = subset(
+  lag_by_adaptation,
+  !is.nan(mean_lag) &
+    FlowName %in% c("ODA Grants", "ODA Loans")
+)
 lag_by_adaptation = lag_by_adaptation[order(-lag_by_adaptation$mean_lag),]
 fwrite(lag_by_adaptation, "output/lag_by_adaptation.csv")
 lag_by_adaptation$label = factor(
   lag_by_adaptation$label,
   levels=adapt_map
 )
-ggplot(lag_by_adaptation, aes(x=label, y=mean_lag)) +
-  geom_bar(stat="identity",fill=reds[1]) +
+ggplot(lag_by_adaptation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName)) +
+  geom_bar(stat="identity", position="dodge") +
   scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values=reds) +
   expand_limits(y=c(0, max(lag_by_adaptation$mean_lag*1.1))) +
   di_style +
   labs(
     y="Mean years between\ncommitment and disbursement",
     x="",
-    color=""
+    fill=""
   ) +
   rotate_x_text_45
 
@@ -259,22 +264,24 @@ mitig_map = c(
 climate_mitig_recent_crs_disb$label = mitig_map[
   as.character(climate_mitig_recent_crs_disb$ClimateMitigation)
 ]
-lag_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label)]
-lag_by_mitigation = subset(lag_by_mitigation, !is.nan(mean_lag))
+lag_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label, FlowName)]
+lag_by_mitigation = subset(lag_by_mitigation, !is.nan(mean_lag)  &
+                             FlowName %in% c("ODA Grants", "ODA Loans"))
 lag_by_mitigation = lag_by_mitigation[order(-lag_by_mitigation$mean_lag),]
 fwrite(lag_by_mitigation, "output/lag_by_mitigation.csv")
 lag_by_mitigation$label = factor(
   lag_by_mitigation$label,
   levels=mitig_map
 )
-ggplot(lag_by_mitigation, aes(x=label, y=mean_lag)) +
-  geom_bar(stat="identity",fill=reds[1]) +
+ggplot(lag_by_mitigation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName)) +
+  geom_bar(stat="identity",position="dodge") +
   scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values=greens) +
   expand_limits(y=c(0, max(lag_by_mitigation$mean_lag*1.1))) +
   di_style +
   labs(
     y="Mean years between\ncommitment and disbursement",
     x="",
-    color=""
+    fill=""
   ) +
   rotate_x_text_45
