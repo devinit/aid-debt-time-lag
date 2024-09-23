@@ -215,3 +215,66 @@ ggplot(lag_by_flow, aes(x=FlowName, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+
+# Climate adaptation
+climate_adapt_recent_crs_disb = subset(
+  recent_crs_disb, 
+  ClimateAdaptation %in% c(0, 1, 2))
+adapt_map = c(
+  "0" = "No adaptation",
+  "1" = "Significant adaptation",
+  "2" = "Principal adaptation"
+)
+climate_adapt_recent_crs_disb$label = adapt_map[
+  as.character(climate_adapt_recent_crs_disb$ClimateAdaptation)
+]
+lag_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label)]
+lag_by_adaptation = subset(lag_by_adaptation, !is.nan(mean_lag))
+lag_by_adaptation = lag_by_adaptation[order(-lag_by_adaptation$mean_lag),]
+fwrite(lag_by_adaptation, "output/lag_by_adaptation.csv")
+lag_by_adaptation$label = factor(
+  lag_by_adaptation$label,
+  levels=adapt_map
+)
+ggplot(lag_by_adaptation, aes(x=label, y=mean_lag)) +
+  geom_bar(stat="identity",fill=reds[1]) +
+  scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, max(lag_by_adaptation$mean_lag*1.1))) +
+  di_style +
+  labs(
+    y="Mean years between\ncommitment and disbursement",
+    x="",
+    color=""
+  ) +
+  rotate_x_text_45
+
+climate_mitig_recent_crs_disb = subset(
+  recent_crs_disb, 
+  ClimateMitigation %in% c(0, 1, 2))
+mitig_map = c(
+  "0" = "No mitigation",
+  "1" = "Significant mitigation",
+  "2" = "Principal mitigation"
+)
+climate_mitig_recent_crs_disb$label = mitig_map[
+  as.character(climate_mitig_recent_crs_disb$ClimateMitigation)
+]
+lag_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label)]
+lag_by_mitigation = subset(lag_by_mitigation, !is.nan(mean_lag))
+lag_by_mitigation = lag_by_mitigation[order(-lag_by_mitigation$mean_lag),]
+fwrite(lag_by_mitigation, "output/lag_by_mitigation.csv")
+lag_by_mitigation$label = factor(
+  lag_by_mitigation$label,
+  levels=mitig_map
+)
+ggplot(lag_by_mitigation, aes(x=label, y=mean_lag)) +
+  geom_bar(stat="identity",fill=reds[1]) +
+  scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, max(lag_by_mitigation$mean_lag*1.1))) +
+  di_style +
+  labs(
+    y="Mean years between\ncommitment and disbursement",
+    x="",
+    color=""
+  ) +
+  rotate_x_text_45
