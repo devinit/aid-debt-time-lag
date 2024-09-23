@@ -3,30 +3,30 @@ setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
 # Set up years of analysis
-# years = 2002:2022
-# 
-# # Set up columns to keep from large dataset
-# keep = c(
-#   "Year", "CommitmentDate", "ExpectedStartDate", "CompletionDate", "DonorName", "DonorCode",
-#   "RecipientName", "DERecipientcode", "SectorName", "SectorCode", "FlowName", "FlowCode",
-#   "USD_Disbursement", "USD_Disbursement_Defl",
-#   "USD_Commitment", "USD_Commitment_Defl"
-# )
-# 
-# # Iterate through and load yearly files
-# crs_list = list()
-# for(i in 1:length(years)){
-#   year = years[[i]]
-#   dataset = fread(paste0("https://github.com/devinit/gha_automation/raw/main/IHA/datasets/crs_", year, ".gz"), showProgress = F)
-#   dataset = dataset[,keep,with=F]
-#   crs_list[[i]] = dataset
-#   rm(dataset)
-#   message(years[[i]])
-# }
-# crs = rbindlist(crs_list)
-# rm(crs_list)
-# # Run this once
-# save(crs, file="large_input/crs.RData")
+years = 2002:2022
+
+# Set up columns to keep from large dataset
+keep = c(
+  "Year", "CommitmentDate", "ExpectedStartDate", "CompletionDate", "DonorName", "DonorCode",
+  "RecipientName", "DERecipientcode", "SectorName", "SectorCode", "FlowName", "FlowCode",
+  "USD_Disbursement", "USD_Disbursement_Defl",
+  "USD_Commitment", "USD_Commitment_Defl"
+)
+
+# Iterate through and load yearly files
+crs_list = list()
+for(i in 1:length(years)){
+  year = years[[i]]
+  dataset = fread(paste0("https://github.com/devinit/gha_automation/raw/main/IHA/datasets/crs_", year, ".gz"), showProgress = F)
+  dataset = dataset[,keep,with=F]
+  crs_list[[i]] = dataset
+  rm(dataset)
+  message(years[[i]])
+}
+crs = rbindlist(crs_list)
+rm(crs_list)
+# Run this once
+save(crs, file="large_input/crs.RData")
 # And then you can start from here
 load("large_input/crs.RData")
 
