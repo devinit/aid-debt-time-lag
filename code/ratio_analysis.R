@@ -9,7 +9,7 @@ years = 2002:2022
 keep = c(
   "Year", "CommitmentDate", "ExpectedStartDate", "CompletionDate", "DonorName", "DonorCode",
   "RecipientName", "DERecipientcode", "SectorName", "SectorCode", "FlowName", "FlowCode",
-  "ProjectNumber",
+  "ProjectNumber", "CrsID",
   "ClimateAdaptation", "ClimateMitigation",
   "USD_Disbursement", "USD_Disbursement_Defl",
   "USD_Commitment", "USD_Commitment_Defl"
