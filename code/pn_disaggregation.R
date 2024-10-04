@@ -64,34 +64,20 @@ source("code/download_crs.R")
 download_au_crs()
 load("large_input/crs_2002_2022.RData")
 
-# Calculate commitment year
-crs$CommitmentYear = as.numeric(substr(crs$CommitmentDate, 1, 4))
-crs$CommitmentYear[which(crs$CommitmentYear==1900)] = NA
-crs$CommitmentYear[which(crs$CommitmentYear > crs$Year)] = 
-  crs$Year[which(crs$CommitmentYear > crs$Year)]
-crs$lag = crs$Year - crs$CommitmentYear
-describe(crs$lag)
+# Remove without PN and subset year
+crs = subset(crs, CrsID!="" & !is.na(CrsID) & Year >= 2012)
 
-# Percent without CommitmentYear
-mean(is.na(crs$CommitmentYear))
+# Calculate unique donor/cid code
+crs$dccid = paste(crs$DonorCode, crs$CrsID, sep="|")
 
-# By disbursement year
-lag_by_year = subset(crs, USD_Disbursement > 0)[,.(mean_lag=mean(lag, na.rm=T)), by=.(Year)]
+# Load previous analysis
+pn_metadata = fread("output/pn_metadata.csv")
 
-ggplot(lag_by_year, aes(x=Year, y=mean_lag)) +
-  geom_line(color=reds[1]) +
-  geom_point(color=reds[1]) +
-  scale_y_continuous(expand = c(0, 0), n.breaks=6) +
-  scale_x_continuous(n.breaks = 15) +
-  expand_limits(y=c(0, max(lag_by_year$mean_lag*1.1))) +
-  di_style +
-  labs(
-    y="Mean years between\ncommitment and disbursement",
-    x="",
-    color=""
-  ) +
-  rotate_x_text_45
-fwrite(lag_by_year, "output/lag_by_year.csv")
+# Percent without match
+1 - (length(unique(pn_metadata$dccid))/length(unique(crs$dccid)))
+
+# Merge
+crs = merge(crs, pn_metadata, by=c("dccid", "Year"))
 
 # By sector
 short_names = c(
@@ -150,86 +136,85 @@ short_names = c(
   "VIII.2. Reconstruction Relief & Rehabilitation" = "Reconstruction",
   "VIII.3. Disaster Prevention & Preparedness" = "Disaster Prevention"
 )
-recent_crs_disb = subset(crs, Year >= 2012 & USD_Disbursement > 0)
-lag_by_sector = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(SectorName)]
-lag_by_sector = subset(lag_by_sector, !is.nan(mean_lag))
-lag_by_sector = lag_by_sector[order(-lag_by_sector$mean_lag),]
-fwrite(lag_by_sector, "output/lag_by_sector.csv")
-lag_by_sector$short_name = short_names[lag_by_sector$SectorName]
-lag_by_sector$short_name = factor(
-  lag_by_sector$short_name,
-  levels=lag_by_sector$short_name
+percent_disbursed_by_sector = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(SectorName)]
+percent_disbursed_by_sector = subset(percent_disbursed_by_sector, !is.nan(mean_percent_disbursed))
+percent_disbursed_by_sector = percent_disbursed_by_sector[order(-percent_disbursed_by_sector$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_sector, "output/percent_disbursed_by_sector.csv")
+percent_disbursed_by_sector$short_name = short_names[percent_disbursed_by_sector$SectorName]
+percent_disbursed_by_sector$short_name = factor(
+  percent_disbursed_by_sector$short_name,
+  levels=percent_disbursed_by_sector$short_name
 )
-ggplot(lag_by_sector, aes(x=short_name, y=mean_lag)) +
+ggplot(percent_disbursed_by_sector, aes(x=short_name, y=mean_percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(lag_by_sector$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  expand_limits(y=c(0, max(percent_disbursed_by_sector$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     color=""
   ) +
   rotate_x_text_45
 
 # By donor
-lag_by_donor = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(DonorName)]
-lag_by_donor = subset(lag_by_donor, !is.nan(mean_lag))
-lag_by_donor = lag_by_donor[order(-lag_by_donor$mean_lag),]
-fwrite(lag_by_donor, "output/lag_by_donor.csv")
-lag_by_donor$DonorName = factor(
-  lag_by_donor$DonorName,
-  levels=lag_by_donor$DonorName
+percent_disbursed_by_donor = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(DonorName)]
+percent_disbursed_by_donor = subset(percent_disbursed_by_donor, !is.nan(mean_percent_disbursed))
+percent_disbursed_by_donor = percent_disbursed_by_donor[order(percent_disbursed_by_donor$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_donor, "output/percent_disbursed_by_donor.csv")
+percent_disbursed_by_donor$DonorName = factor(
+  percent_disbursed_by_donor$DonorName,
+  levels=percent_disbursed_by_donor$DonorName
 )
-ggplot(lag_by_donor[1:10], aes(x=DonorName, y=mean_lag)) +
+ggplot(percent_disbursed_by_donor[1:10], aes(x=DonorName, y=mean_percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(lag_by_donor$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  expand_limits(y=c(0, max(percent_disbursed_by_donor$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     color=""
   ) +
   rotate_x_text_45
 
 # By donor bi_multi
-lag_by_bi_multi = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(Bi_MultiName)]
-lag_by_bi_multi = subset(lag_by_bi_multi, !is.nan(mean_lag))
-lag_by_bi_multi = lag_by_bi_multi[order(-lag_by_bi_multi$mean_lag),]
-fwrite(lag_by_bi_multi, "output/lag_by_bi_multi.csv")
-lag_by_bi_multi$Bi_MultiName = factor(
-  lag_by_bi_multi$Bi_MultiName,
-  levels=lag_by_bi_multi$Bi_MultiName
+percent_disbursed_by_bi_multi = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(Bi_MultiName)]
+percent_disbursed_by_bi_multi = subset(percent_disbursed_by_bi_multi, !is.nan(mean_percent_disbursed))
+percent_disbursed_by_bi_multi = percent_disbursed_by_bi_multi[order(-percent_disbursed_by_bi_multi$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_bi_multi, "output/percent_disbursed_by_bi_multi.csv")
+percent_disbursed_by_bi_multi$Bi_MultiName = factor(
+  percent_disbursed_by_bi_multi$Bi_MultiName,
+  levels=percent_disbursed_by_bi_multi$Bi_MultiName
 )
-ggplot(lag_by_bi_multi, aes(x=Bi_MultiName, y=mean_lag)) +
+ggplot(percent_disbursed_by_bi_multi, aes(x=Bi_MultiName, y=mean_percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(lag_by_bi_multi$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  expand_limits(y=c(0, max(percent_disbursed_by_bi_multi$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     color=""
   ) +
   rotate_x_text_45
 
 # By flow
-lag_by_flow = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(FlowName)]
-lag_by_flow = subset(lag_by_flow, !is.nan(mean_lag))
-lag_by_flow = lag_by_flow[order(-lag_by_flow$mean_lag),]
-fwrite(lag_by_flow, "output/lag_by_flow.csv")
-lag_by_flow$FlowName = factor(
-  lag_by_flow$FlowName,
-  levels=lag_by_flow$FlowName
+percent_disbursed_by_flow = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(FlowName)]
+percent_disbursed_by_flow = subset(percent_disbursed_by_flow, !is.nan(mean_percent_disbursed))
+percent_disbursed_by_flow = percent_disbursed_by_flow[order(-percent_disbursed_by_flow$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_flow, "output/percent_disbursed_by_flow.csv")
+percent_disbursed_by_flow$FlowName = factor(
+  percent_disbursed_by_flow$FlowName,
+  levels=percent_disbursed_by_flow$FlowName
 )
-ggplot(lag_by_flow, aes(x=FlowName, y=mean_lag)) +
+ggplot(percent_disbursed_by_flow, aes(x=FlowName, y=mean_percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(lag_by_flow$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  expand_limits(y=c(0, max(percent_disbursed_by_flow$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     color=""
   ) +
@@ -237,7 +222,7 @@ ggplot(lag_by_flow, aes(x=FlowName, y=mean_lag)) +
 
 # Climate adaptation
 climate_adapt_recent_crs_disb = subset(
-  recent_crs_disb, 
+  crs, 
   ClimateAdaptation %in% c(0, 1, 2))
 adapt_map = c(
   "0" = "No adaptation",
@@ -247,33 +232,33 @@ adapt_map = c(
 climate_adapt_recent_crs_disb$label = adapt_map[
   as.character(climate_adapt_recent_crs_disb$ClimateAdaptation)
 ]
-lag_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label, FlowName)]
-lag_by_adaptation = subset(
-  lag_by_adaptation,
-  !is.nan(mean_lag) &
+percent_disbursed_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
+percent_disbursed_by_adaptation = subset(
+  percent_disbursed_by_adaptation,
+  !is.nan(mean_percent_disbursed) &
     FlowName %in% c("ODA Grants", "ODA Loans")
 )
-lag_by_adaptation = lag_by_adaptation[order(-lag_by_adaptation$mean_lag),]
-fwrite(lag_by_adaptation, "output/lag_by_adaptation.csv")
-lag_by_adaptation$label = factor(
-  lag_by_adaptation$label,
+percent_disbursed_by_adaptation = percent_disbursed_by_adaptation[order(-percent_disbursed_by_adaptation$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_adaptation, "output/percent_disbursed_by_adaptation.csv")
+percent_disbursed_by_adaptation$label = factor(
+  percent_disbursed_by_adaptation$label,
   levels=adapt_map
 )
-ggplot(lag_by_adaptation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName)) +
+ggplot(percent_disbursed_by_adaptation, aes(x=label, y=mean_percent_disbursed, group=FlowName, fill=FlowName)) +
   geom_bar(stat="identity", position="dodge") +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values=reds) +
-  expand_limits(y=c(0, max(lag_by_adaptation$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  scale_fill_manual(values=greens) +
+  expand_limits(y=c(0, max(percent_disbursed_by_adaptation$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     fill=""
   ) +
   rotate_x_text_45
 
 climate_mitig_recent_crs_disb = subset(
-  recent_crs_disb, 
+  crs, 
   ClimateMitigation %in% c(0, 1, 2))
 mitig_map = c(
   "0" = "No mitigation",
@@ -283,44 +268,44 @@ mitig_map = c(
 climate_mitig_recent_crs_disb$label = mitig_map[
   as.character(climate_mitig_recent_crs_disb$ClimateMitigation)
 ]
-lag_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(label, FlowName)]
-lag_by_mitigation = subset(lag_by_mitigation, !is.nan(mean_lag)  &
+percent_disbursed_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
+percent_disbursed_by_mitigation = subset(percent_disbursed_by_mitigation, !is.nan(mean_percent_disbursed)  &
                              FlowName %in% c("ODA Grants", "ODA Loans"))
-lag_by_mitigation = lag_by_mitigation[order(-lag_by_mitigation$mean_lag),]
-fwrite(lag_by_mitigation, "output/lag_by_mitigation.csv")
-lag_by_mitigation$label = factor(
-  lag_by_mitigation$label,
+percent_disbursed_by_mitigation = percent_disbursed_by_mitigation[order(-percent_disbursed_by_mitigation$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_mitigation, "output/percent_disbursed_by_mitigation.csv")
+percent_disbursed_by_mitigation$label = factor(
+  percent_disbursed_by_mitigation$label,
   levels=mitig_map
 )
-ggplot(lag_by_mitigation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName)) +
+ggplot(percent_disbursed_by_mitigation, aes(x=label, y=mean_percent_disbursed, group=FlowName, fill=FlowName)) +
   geom_bar(stat="identity",position="dodge") +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values=greens) +
-  expand_limits(y=c(0, max(lag_by_mitigation$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  scale_fill_manual(values=blues) +
+  expand_limits(y=c(0, max(percent_disbursed_by_mitigation$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     fill=""
   ) +
   rotate_x_text_45
 
 # By income
-lag_by_income = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(IncomegroupName)]
-lag_by_income = subset(lag_by_income, !is.nan(mean_lag))
-lag_by_income = lag_by_income[order(-lag_by_income$mean_lag),]
-fwrite(lag_by_income, "output/lag_by_income.csv")
-lag_by_income$IncomegroupName = factor(
-  lag_by_income$IncomegroupName,
-  levels=lag_by_income$IncomegroupName
+percent_disbursed_by_income = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(IncomegroupName)]
+percent_disbursed_by_income = subset(percent_disbursed_by_income, !is.nan(mean_percent_disbursed))
+percent_disbursed_by_income = percent_disbursed_by_income[order(-percent_disbursed_by_income$mean_percent_disbursed),]
+fwrite(percent_disbursed_by_income, "output/percent_disbursed_by_income.csv")
+percent_disbursed_by_income$IncomegroupName = factor(
+  percent_disbursed_by_income$IncomegroupName,
+  levels=percent_disbursed_by_income$IncomegroupName
 )
-ggplot(lag_by_income, aes(x=IncomegroupName, y=mean_lag)) +
+ggplot(percent_disbursed_by_income, aes(x=IncomegroupName, y=mean_percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
-  scale_y_continuous(expand = c(0, 0)) +
-  expand_limits(y=c(0, max(lag_by_income$mean_lag*1.1))) +
+  scale_y_continuous(expand = c(0, 0), label=percent) +
+  expand_limits(y=c(0, max(percent_disbursed_by_income$mean_percent_disbursed*1.1))) +
   di_style +
   labs(
-    y="Mean years between\ncommitment and disbursement",
+    y="Percent of commitments\ndisbursed to date",
     x="",
     color=""
   ) +
