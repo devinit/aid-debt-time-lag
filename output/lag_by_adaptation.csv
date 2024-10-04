@@ -1,7 +1,7 @@
 label,FlowName,mean_lag
-No adaptation,ODA Loans,4.34411006018917
-Significant adaptation,ODA Loans,3.83348708487085
-Principal adaptation,ODA Loans,2.48595213319459
-Principal adaptation,ODA Grants,0.537590945836702
-Significant adaptation,ODA Grants,0.472807451236822
-No adaptation,ODA Grants,0.238954800031553
+No adaptation,ODA Loans,4.34427797258527
+Significant adaptation,ODA Loans,4.27422680412371
+Principal adaptation,ODA Loans,3.54508196721311
+Principal adaptation,ODA Grants,0.558964209137391
+Significant adaptation,ODA Grants,0.411860223434658
+No adaptation,ODA Grants,0.23983358980956

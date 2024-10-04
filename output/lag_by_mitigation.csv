@@ -1,7 +1,7 @@
 label,FlowName,mean_lag
-No mitigation,ODA Loans,4.37910675173793
-Significant mitigation,ODA Loans,3.88128106018774
-Principal mitigation,ODA Loans,3.47778643803585
-Principal mitigation,ODA Grants,0.53066291483903
-Significant mitigation,ODA Grants,0.51610615639799
-No mitigation,ODA Grants,0.247207526334063
+No mitigation,ODA Loans,4.38668831168831
+Significant mitigation,ODA Loans,4.21359223300971
+Principal mitigation,ODA Loans,3.64426877470356
+Principal mitigation,ODA Grants,0.488815789473684
+Significant mitigation,ODA Grants,0.443988208043799
+No mitigation,ODA Grants,0.252908648939526

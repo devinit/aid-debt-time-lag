@@ -1,12 +1,14 @@
-lapply(c("data.table", "rstudioapi", "scales"), require, character.only = T)
+lapply(c("data.table", "rstudioapi", "scales", "zoo"), require, character.only = T)
 setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
-# From ratio_analysis.R
-load("large_input/crs.RData")
+# Download data and load
+source("code/download_crs.R")
+download_au_crs()
+load("large_input/crs_2002_2022.RData")
 
 # Remove without PN and subset year
-crs = subset(crs, CrsID!="" & !is.na(CrsID) & Year >= 2013)
+crs = subset(crs, CrsID!="" & !is.na(CrsID) & Year >= 2012)
 
 # Calculate unique donor/cid code
 crs$dccid = paste(crs$DonorCode, crs$CrsID, sep="|")
@@ -46,37 +48,41 @@ cid_agg_agg$USD_Commitment_Total[which(
 cid_agg_agg[,c("USD_Disbursement_Total")] = NULL
 
 cid_agg = merge(cid_agg, cid_agg_agg, by=c("dccid"))
+cid_agg[,c("USD_Commitment")] = NULL
 
-# Normalize (Set disbursements to % of total commitments)
-cid_agg$USD_Disbursement = cid_agg$USD_Disbursement / cid_agg$USD_Commitment_Total
-cid_agg[,c("USD_Commitment_Total", "USD_Commitment")] = NULL
 # Calculate years in terms of time since first transaction
-cid_agg[,"years":=(Year - min(Year)) + 1, by=.(dccid)]
-cid_agg[,c("Year")] = NULL
+cid_agg[,"normalized_year":=(Year - min(Year)) + 1, by=.(dccid)]
 # Grid out to all years
 all_years = expand.grid(
   dccid=unique(cid_agg$dccid),
-  years=unique(cid_agg$years)
+  normalized_year=unique(cid_agg$normalized_year)
 )
-cid_agg = merge(cid_agg, all_years, by=c("dccid", "years"), all=T)
+cid_agg = merge(cid_agg, all_years, by=c("dccid", "normalized_year"), all=T)
+cid_agg = cid_agg[order(cid_agg$dccid, cid_agg$normalized_year),]
+
+# Normalize (Set disbursements to % of total commitments)
+cid_agg[,"USD_Commitment_Total":=na.locf(USD_Commitment_Total), by=.(dccid)]
 cid_agg$USD_Disbursement[which(is.na(cid_agg$USD_Disbursement))] = 0
-cid_agg = cid_agg[order(cid_agg$dccid, cid_agg$years),]
-cid_agg[,"cum_USD_Disbursement":=cumsum(USD_Disbursement), by=.(dccid)]
+cid_agg[,"cumulative_USD_Disbursement":=cumsum(USD_Disbursement), by=.(dccid)]
+cid_agg$cumulative_USD_Disbursement_Percentage = cid_agg$cumulative_USD_Disbursement / cid_agg$USD_Commitment_Total
 
 # Calculate mean percentage completed past each year
 pg_mean_pct = cid_agg[,.(
-  mean_cumulative_percentage_disbursed=mean(cum_USD_Disbursement)
-), by=.(years)]
-fwrite(pg_mean_pct, "output/project_number_cumulative_disb_by_year.csv")
+  mean_cumulative_percentage_disbursed=mean(cumulative_USD_Disbursement_Percentage)
+), by=.(normalized_year)]
+fwrite(pg_mean_pct, "output/pn_cum_disb.csv")
 
-# Calculate mean years to complete
-completed = subset(cid_agg, cum_USD_Disbursement == 1)
-completed[,"min_years":=min(years), by=.(dccid)]
-completed = subset(completed, years == min_years)
-completed_table = data.table(table(completed$years))
-setnames(completed_table, "V1", "years_to_fulfill_commitment")
-completed_table$pct = completed_table$N / sum(completed_table$N)
-completed_table$cum_pct = cumsum(completed_table$pct)
-fwrite(completed_table, "output/completed_project_number_counts.csv")
-completed_table$cum_pct_label = label_percent(accuracy=0.1)(completed_table$cum_pct)
-mean(completed$years)
+cid_max_years = cid_agg[,.(Year=max(Year, na.rm=T)), by=.(dccid)]
+cid_agg_max = merge(cid_agg, cid_max_years, by=c("dccid", "Year"))
+cid_agg_max[,c("USD_Disbursement")] = NULL
+# Set same year to 0
+cid_agg_max$normalized_year = cid_agg_max$normalized_year - 1
+setnames(
+  cid_agg_max,
+  c("cumulative_USD_Disbursement", "cumulative_USD_Disbursement_Percentage", "normalized_year"),
+  c("USD_Disbursement_Total", "percent_disbursed", "lag")
+)
+
+weighted.mean(cid_agg_max$lag, cid_agg_max$USD_Disbursement_Total)
+weighted.mean(cid_agg_max$percent_disbursed, cid_agg_max$USD_Disbursement_Total)
+fwrite(cid_agg_max, "output/pn_metadata.csv")

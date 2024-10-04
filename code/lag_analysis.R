@@ -59,8 +59,10 @@ rotate_x_text_90 = theme(
 )
 #### End chart setup ####
 
-# From ratio_analysis.R
-load("large_input/crs.RData")
+# Download data and load
+source("code/download_crs.R")
+download_au_crs()
+load("large_input/crs_2002_2022.RData")
 
 # Calculate commitment year
 crs$CommitmentYear = as.numeric(substr(crs$CommitmentDate, 1, 4))
@@ -69,6 +71,9 @@ crs$CommitmentYear[which(crs$CommitmentYear > crs$Year)] =
   crs$Year[which(crs$CommitmentYear > crs$Year)]
 crs$lag = crs$Year - crs$CommitmentYear
 describe(crs$lag)
+
+# Percent without CommitmentYear
+mean(is.na(crs$CommitmentYear))
 
 # By disbursement year
 lag_by_year = subset(crs, USD_Disbursement > 0)[,.(mean_lag=mean(lag, na.rm=T)), by=.(Year)]
@@ -87,13 +92,6 @@ ggplot(lag_by_year, aes(x=Year, y=mean_lag)) +
   ) +
   rotate_x_text_45
 fwrite(lag_by_year, "output/lag_by_year.csv")
-
-y2009 = subset(crs, Year==2009)
-View(table(y2009$CommitmentYear))
-hist(y2009$CommitmentYear)
-y2008 = subset(crs, Year==2008)
-View(table(y2008$CommitmentYear))
-hist(y2008$CommitmentYear)
 
 # By sector
 short_names = c(
@@ -195,6 +193,27 @@ ggplot(lag_by_donor[1:10], aes(x=DonorName, y=mean_lag)) +
   ) +
   rotate_x_text_45
 
+# By donor bi_multi
+lag_by_bi_multi = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(Bi_MultiName)]
+lag_by_bi_multi = subset(lag_by_bi_multi, !is.nan(mean_lag))
+lag_by_bi_multi = lag_by_bi_multi[order(-lag_by_bi_multi$mean_lag),]
+fwrite(lag_by_bi_multi, "output/lag_by_bi_multi.csv")
+lag_by_bi_multi$Bi_MultiName = factor(
+  lag_by_bi_multi$Bi_MultiName,
+  levels=lag_by_bi_multi$Bi_MultiName
+)
+ggplot(lag_by_bi_multi, aes(x=Bi_MultiName, y=mean_lag)) +
+  geom_bar(stat="identity",fill=reds[1]) +
+  scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, max(lag_by_bi_multi$mean_lag*1.1))) +
+  di_style +
+  labs(
+    y="Mean years between\ncommitment and disbursement",
+    x="",
+    color=""
+  ) +
+  rotate_x_text_45
+
 # By flow
 lag_by_flow = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(FlowName)]
 lag_by_flow = subset(lag_by_flow, !is.nan(mean_lag))
@@ -283,5 +302,26 @@ ggplot(lag_by_mitigation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName
     y="Mean years between\ncommitment and disbursement",
     x="",
     fill=""
+  ) +
+  rotate_x_text_45
+
+# By income
+lag_by_income = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(IncomegroupName)]
+lag_by_income = subset(lag_by_income, !is.nan(mean_lag))
+lag_by_income = lag_by_income[order(-lag_by_income$mean_lag),]
+fwrite(lag_by_income, "output/lag_by_income.csv")
+lag_by_income$IncomegroupName = factor(
+  lag_by_income$IncomegroupName,
+  levels=lag_by_income$IncomegroupName
+)
+ggplot(lag_by_income, aes(x=IncomegroupName, y=mean_lag)) +
+  geom_bar(stat="identity",fill=reds[1]) +
+  scale_y_continuous(expand = c(0, 0)) +
+  expand_limits(y=c(0, max(lag_by_income$mean_lag*1.1))) +
+  di_style +
+  labs(
+    y="Mean years between\ncommitment and disbursement",
+    x="",
+    color=""
   ) +
   rotate_x_text_45

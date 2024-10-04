@@ -1,43 +1,43 @@
 SectorName,mean_lag
-VII. Action Relating to Debt,3.5412406271302
-II.3.d. Hybrid energy plants,3.06976744186047
-"II.3.c. Energy generation, non-renewable sources",2.61960784313726
-II.3.f. Energy distribution,2.48328182073616
-II.1. Transport & Storage,1.41479115600782
-"II.3.b. Energy generation, renewable sources",1.17144219056194
-I.4. Water Supply & Sanitation,1.08840075006697
-III.1.b. Forestry,0.880566037735849
-II.4. Banking & Financial Services,0.8736041815158
-II.3.a. Energy Policy,0.704214632289982
-III.2.b. Mineral Resources & Mining,0.678299237866025
-III.1.a. Agriculture,0.638538462681466
-IV.1. General Environment Protection,0.57901080260691
-VI.3. Other Commodity Assistance,0.578088578088578
-III.2.a. Industry,0.528723186327588
-I.1.c. Secondary Education,0.510297887386193
-IV.2. Other Multisector,0.436578612586994
-III.1.c. Fishing,0.403520393678433
-II.5. Business & Other Services,0.389220684632192
-VIII.2. Reconstruction Relief & Rehabilitation,0.386660280205963
-II.2. Communications,0.382866956258208
-I.5.a. Government & Civil Society-general,0.332058467699568
-III.3.b. Tourism,0.325068080837036
-III.3.a. Trade Policies & Regulations,0.324481286607763
-III.2.c. Construction,0.32078431372549
-I.2.b. Basic Health,0.318718157804866
-"I.2.a. Health, General",0.287919003967711
-I.3. Population Policies/Programmes & Reproductive Health,0.238048486959826
-I.1.b. Basic Education,0.228961488827005
-"I.5.b. Conflict, Peace & Security",0.219106449344057
-IX. Unallocated / Unspecified,0.217371899160632
-"I.1.a. Education, Level Unspecified",0.204845239649993
-I.6. Other Social Infrastructure & Services,0.185256992238981
-VI.2. Development Food Assistance,0.172917681441793
-VIII.3. Disaster Prevention & Preparedness,0.168495029139527
-I.1.d. Post-Secondary Education,0.15465717768772
-I.2.c. Non-communicable diseases (NCDs),0.147490460815967
-II.3.e. Nuclear energy plants,0.137362637362637
-VI.1. General Budget Support,0.122148859543818
-VIII.1. Emergency Response,0.0705147325567334
-Administrative Costs of Donors,0.0217439935573352
-Refugees in Donor Countries,0.00579937304075235
+VII. Action Relating to Debt,3.86080586080586
+II.3.f. Energy distribution,2.60370504903741
+"II.3.c. Energy generation, non-renewable sources",2.54579673776663
+II.1. Transport & Storage,1.56640218001122
+II.3.d. Hybrid energy plants,1.27272727272727
+"II.3.b. Energy generation, renewable sources",1.18250830302072
+I.4. Water Supply & Sanitation,0.921811224489796
+VI.3. Other Commodity Assistance,0.918478260869565
+II.4. Banking & Financial Services,0.847338129496403
+II.3.a. Energy Policy,0.722571111932028
+III.2.b. Mineral Resources & Mining,0.68625447112928
+III.1.b. Forestry,0.681438664097624
+III.1.a. Agriculture,0.649553387837015
+IV.1. General Environment Protection,0.558315435614903
+III.1.c. Fishing,0.552204836415363
+I.1.c. Secondary Education,0.53370340999207
+IV.2. Other Multisector,0.506075485830802
+II.2. Communications,0.49598883850715
+III.2.a. Industry,0.461061209371238
+III.2.c. Construction,0.446028513238289
+VIII.2. Reconstruction Relief & Rehabilitation,0.424930306650737
+II.5. Business & Other Services,0.408714213962833
+III.3.a. Trade Policies & Regulations,0.379531895364846
+I.5.a. Government & Civil Society-general,0.330518340004902
+III.3.b. Tourism,0.267711962833914
+"I.5.b. Conflict, Peace & Security",0.266861440915025
+I.2.b. Basic Health,0.250929101204243
+I.1.b. Basic Education,0.248526645768025
+"I.2.a. Health, General",0.242545164332874
+I.3. Population Policies/Programmes & Reproductive Health,0.220652461105671
+"I.1.a. Education, Level Unspecified",0.217767445405694
+I.6. Other Social Infrastructure & Services,0.216659776767259
+I.2.c. Non-communicable diseases (NCDs),0.206316861946001
+I.1.d. Post-Secondary Education,0.203506907545165
+VI.1. General Budget Support,0.187141947803947
+VI.2. Development Food Assistance,0.180196629213483
+VIII.3. Disaster Prevention & Preparedness,0.144739153346215
+IX. Unallocated / Unspecified,0.143695014662757
+VIII.1. Emergency Response,0.0750785933259133
+Administrative Costs of Donors,0.0106607310215558
+Refugees in Donor Countries,0.00938967136150235
+II.3.e. Nuclear energy plants,0
