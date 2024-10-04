@@ -37,7 +37,6 @@ di_style = theme_bw() +
     ,panel.grid.major.y = element_line(colour = greys[2])
     ,panel.grid.minor.y = element_blank()
     ,panel.background = element_blank()
-    ,plot.background = element_blank()
     ,axis.line.x = element_line(colour = "black")
     ,axis.line.y = element_blank()
     ,axis.ticks = element_blank()
@@ -91,6 +90,11 @@ ggplot(lag_by_year, aes(x=Year, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_year.png",
+  height=5,
+  width=8
+)
 fwrite(lag_by_year, "output/lag_by_year.csv")
 
 # By sector
@@ -171,6 +175,11 @@ ggplot(lag_by_sector, aes(x=short_name, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_sector.png",
+  height=5,
+  width=8
+)
 
 # By donor
 lag_by_donor = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(DonorName)]
@@ -192,6 +201,11 @@ ggplot(lag_by_donor[1:10], aes(x=DonorName, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_donor.png",
+  height=5,
+  width=8
+)
 
 # By donor bi_multi
 lag_by_bi_multi = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(Bi_MultiName)]
@@ -213,6 +227,11 @@ ggplot(lag_by_bi_multi, aes(x=Bi_MultiName, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_bi_multi.png",
+  height=5,
+  width=8
+)
 
 # By flow
 lag_by_flow = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(FlowName)]
@@ -234,6 +253,11 @@ ggplot(lag_by_flow, aes(x=FlowName, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_flow.png",
+  height=5,
+  width=8
+)
 
 # Climate adaptation
 climate_adapt_recent_crs_disb = subset(
@@ -271,6 +295,11 @@ ggplot(lag_by_adaptation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName
     fill=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_adaptation.png",
+  height=5,
+  width=8
+)
 
 climate_mitig_recent_crs_disb = subset(
   recent_crs_disb, 
@@ -304,6 +333,11 @@ ggplot(lag_by_mitigation, aes(x=label, y=mean_lag, group=FlowName, fill=FlowName
     fill=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_mitigation.png",
+  height=5,
+  width=8
+)
 
 # By income
 lag_by_income = recent_crs_disb[,.(mean_lag=mean(lag, na.rm=T)), by=.(IncomegroupName)]
@@ -325,3 +359,8 @@ ggplot(lag_by_income, aes(x=IncomegroupName, y=mean_lag)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/lag_by_income.png",
+  height=5,
+  width=8
+)

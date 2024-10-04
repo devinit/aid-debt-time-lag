@@ -1,4 +1,4 @@
-label,FlowName,mean_percent_disbursed
+label,FlowName,percent_disbursed
 No mitigation,ODA Grants,0.765406353860415
 Significant mitigation,ODA Grants,0.707147669296008
 No mitigation,ODA Loans,0.690683102521165

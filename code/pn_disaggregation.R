@@ -37,7 +37,6 @@ di_style = theme_bw() +
     ,panel.grid.major.y = element_line(colour = greys[2])
     ,panel.grid.minor.y = element_blank()
     ,panel.background = element_blank()
-    ,plot.background = element_blank()
     ,axis.line.x = element_line(colour = "black")
     ,axis.line.y = element_blank()
     ,axis.ticks = element_blank()
@@ -136,19 +135,19 @@ short_names = c(
   "VIII.2. Reconstruction Relief & Rehabilitation" = "Reconstruction",
   "VIII.3. Disaster Prevention & Preparedness" = "Disaster Prevention"
 )
-percent_disbursed_by_sector = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(SectorName)]
-percent_disbursed_by_sector = subset(percent_disbursed_by_sector, !is.nan(mean_percent_disbursed))
-percent_disbursed_by_sector = percent_disbursed_by_sector[order(-percent_disbursed_by_sector$mean_percent_disbursed),]
+percent_disbursed_by_sector = crs[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(SectorName)]
+percent_disbursed_by_sector = subset(percent_disbursed_by_sector, !is.nan(percent_disbursed))
+percent_disbursed_by_sector = percent_disbursed_by_sector[order(-percent_disbursed_by_sector$percent_disbursed),]
 fwrite(percent_disbursed_by_sector, "output/percent_disbursed_by_sector.csv")
 percent_disbursed_by_sector$short_name = short_names[percent_disbursed_by_sector$SectorName]
 percent_disbursed_by_sector$short_name = factor(
   percent_disbursed_by_sector$short_name,
   levels=percent_disbursed_by_sector$short_name
 )
-ggplot(percent_disbursed_by_sector, aes(x=short_name, y=mean_percent_disbursed)) +
+ggplot(percent_disbursed_by_sector, aes(x=short_name, y=percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
   scale_y_continuous(expand = c(0, 0), label=percent) +
-  expand_limits(y=c(0, max(percent_disbursed_by_sector$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_sector$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -156,20 +155,25 @@ ggplot(percent_disbursed_by_sector, aes(x=short_name, y=mean_percent_disbursed))
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_sector.png",
+  height=5,
+  width=8
+)
 
 # By donor
-percent_disbursed_by_donor = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(DonorName)]
-percent_disbursed_by_donor = subset(percent_disbursed_by_donor, !is.nan(mean_percent_disbursed))
-percent_disbursed_by_donor = percent_disbursed_by_donor[order(percent_disbursed_by_donor$mean_percent_disbursed),]
+percent_disbursed_by_donor = crs[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(DonorName)]
+percent_disbursed_by_donor = subset(percent_disbursed_by_donor, !is.nan(percent_disbursed))
+percent_disbursed_by_donor = percent_disbursed_by_donor[order(percent_disbursed_by_donor$percent_disbursed),]
 fwrite(percent_disbursed_by_donor, "output/percent_disbursed_by_donor.csv")
 percent_disbursed_by_donor$DonorName = factor(
   percent_disbursed_by_donor$DonorName,
   levels=percent_disbursed_by_donor$DonorName
 )
-ggplot(percent_disbursed_by_donor[1:10], aes(x=DonorName, y=mean_percent_disbursed)) +
+ggplot(percent_disbursed_by_donor[1:10], aes(x=DonorName, y=percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
   scale_y_continuous(expand = c(0, 0), label=percent) +
-  expand_limits(y=c(0, max(percent_disbursed_by_donor$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_donor$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -177,20 +181,25 @@ ggplot(percent_disbursed_by_donor[1:10], aes(x=DonorName, y=mean_percent_disburs
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_donor.png",
+  height=5,
+  width=8
+)
 
 # By donor bi_multi
-percent_disbursed_by_bi_multi = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(Bi_MultiName)]
-percent_disbursed_by_bi_multi = subset(percent_disbursed_by_bi_multi, !is.nan(mean_percent_disbursed))
-percent_disbursed_by_bi_multi = percent_disbursed_by_bi_multi[order(-percent_disbursed_by_bi_multi$mean_percent_disbursed),]
+percent_disbursed_by_bi_multi = crs[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(Bi_MultiName)]
+percent_disbursed_by_bi_multi = subset(percent_disbursed_by_bi_multi, !is.nan(percent_disbursed))
+percent_disbursed_by_bi_multi = percent_disbursed_by_bi_multi[order(-percent_disbursed_by_bi_multi$percent_disbursed),]
 fwrite(percent_disbursed_by_bi_multi, "output/percent_disbursed_by_bi_multi.csv")
 percent_disbursed_by_bi_multi$Bi_MultiName = factor(
   percent_disbursed_by_bi_multi$Bi_MultiName,
   levels=percent_disbursed_by_bi_multi$Bi_MultiName
 )
-ggplot(percent_disbursed_by_bi_multi, aes(x=Bi_MultiName, y=mean_percent_disbursed)) +
+ggplot(percent_disbursed_by_bi_multi, aes(x=Bi_MultiName, y=percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
   scale_y_continuous(expand = c(0, 0), label=percent) +
-  expand_limits(y=c(0, max(percent_disbursed_by_bi_multi$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_bi_multi$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -198,20 +207,25 @@ ggplot(percent_disbursed_by_bi_multi, aes(x=Bi_MultiName, y=mean_percent_disburs
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_bi_multi.png",
+  height=5,
+  width=8
+)
 
 # By flow
-percent_disbursed_by_flow = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(FlowName)]
-percent_disbursed_by_flow = subset(percent_disbursed_by_flow, !is.nan(mean_percent_disbursed))
-percent_disbursed_by_flow = percent_disbursed_by_flow[order(-percent_disbursed_by_flow$mean_percent_disbursed),]
+percent_disbursed_by_flow = crs[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(FlowName)]
+percent_disbursed_by_flow = subset(percent_disbursed_by_flow, !is.nan(percent_disbursed))
+percent_disbursed_by_flow = percent_disbursed_by_flow[order(-percent_disbursed_by_flow$percent_disbursed),]
 fwrite(percent_disbursed_by_flow, "output/percent_disbursed_by_flow.csv")
 percent_disbursed_by_flow$FlowName = factor(
   percent_disbursed_by_flow$FlowName,
   levels=percent_disbursed_by_flow$FlowName
 )
-ggplot(percent_disbursed_by_flow, aes(x=FlowName, y=mean_percent_disbursed)) +
+ggplot(percent_disbursed_by_flow, aes(x=FlowName, y=percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
   scale_y_continuous(expand = c(0, 0), label=percent) +
-  expand_limits(y=c(0, max(percent_disbursed_by_flow$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_flow$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -219,6 +233,11 @@ ggplot(percent_disbursed_by_flow, aes(x=FlowName, y=mean_percent_disbursed)) +
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_flow.png",
+  height=5,
+  width=8
+)
 
 # Climate adaptation
 climate_adapt_recent_crs_disb = subset(
@@ -232,23 +251,23 @@ adapt_map = c(
 climate_adapt_recent_crs_disb$label = adapt_map[
   as.character(climate_adapt_recent_crs_disb$ClimateAdaptation)
 ]
-percent_disbursed_by_adaptation = climate_adapt_recent_crs_disb[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
+percent_disbursed_by_adaptation = climate_adapt_recent_crs_disb[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
 percent_disbursed_by_adaptation = subset(
   percent_disbursed_by_adaptation,
-  !is.nan(mean_percent_disbursed) &
+  !is.nan(percent_disbursed) &
     FlowName %in% c("ODA Grants", "ODA Loans")
 )
-percent_disbursed_by_adaptation = percent_disbursed_by_adaptation[order(-percent_disbursed_by_adaptation$mean_percent_disbursed),]
+percent_disbursed_by_adaptation = percent_disbursed_by_adaptation[order(-percent_disbursed_by_adaptation$percent_disbursed),]
 fwrite(percent_disbursed_by_adaptation, "output/percent_disbursed_by_adaptation.csv")
 percent_disbursed_by_adaptation$label = factor(
   percent_disbursed_by_adaptation$label,
   levels=adapt_map
 )
-ggplot(percent_disbursed_by_adaptation, aes(x=label, y=mean_percent_disbursed, group=FlowName, fill=FlowName)) +
+ggplot(percent_disbursed_by_adaptation, aes(x=label, y=percent_disbursed, group=FlowName, fill=FlowName)) +
   geom_bar(stat="identity", position="dodge") +
   scale_y_continuous(expand = c(0, 0), label=percent) +
   scale_fill_manual(values=greens) +
-  expand_limits(y=c(0, max(percent_disbursed_by_adaptation$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_adaptation$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -256,6 +275,11 @@ ggplot(percent_disbursed_by_adaptation, aes(x=label, y=mean_percent_disbursed, g
     fill=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_adaptation.png",
+  height=5,
+  width=8
+)
 
 climate_mitig_recent_crs_disb = subset(
   crs, 
@@ -268,20 +292,20 @@ mitig_map = c(
 climate_mitig_recent_crs_disb$label = mitig_map[
   as.character(climate_mitig_recent_crs_disb$ClimateMitigation)
 ]
-percent_disbursed_by_mitigation = climate_mitig_recent_crs_disb[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
-percent_disbursed_by_mitigation = subset(percent_disbursed_by_mitigation, !is.nan(mean_percent_disbursed)  &
+percent_disbursed_by_mitigation = climate_mitig_recent_crs_disb[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(label, FlowName)]
+percent_disbursed_by_mitigation = subset(percent_disbursed_by_mitigation, !is.nan(percent_disbursed)  &
                              FlowName %in% c("ODA Grants", "ODA Loans"))
-percent_disbursed_by_mitigation = percent_disbursed_by_mitigation[order(-percent_disbursed_by_mitigation$mean_percent_disbursed),]
+percent_disbursed_by_mitigation = percent_disbursed_by_mitigation[order(-percent_disbursed_by_mitigation$percent_disbursed),]
 fwrite(percent_disbursed_by_mitigation, "output/percent_disbursed_by_mitigation.csv")
 percent_disbursed_by_mitigation$label = factor(
   percent_disbursed_by_mitigation$label,
   levels=mitig_map
 )
-ggplot(percent_disbursed_by_mitigation, aes(x=label, y=mean_percent_disbursed, group=FlowName, fill=FlowName)) +
+ggplot(percent_disbursed_by_mitigation, aes(x=label, y=percent_disbursed, group=FlowName, fill=FlowName)) +
   geom_bar(stat="identity",position="dodge") +
   scale_y_continuous(expand = c(0, 0), label=percent) +
   scale_fill_manual(values=blues) +
-  expand_limits(y=c(0, max(percent_disbursed_by_mitigation$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_mitigation$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -289,20 +313,25 @@ ggplot(percent_disbursed_by_mitigation, aes(x=label, y=mean_percent_disbursed, g
     fill=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_mitigation.png",
+  height=5,
+  width=8
+)
 
 # By income
-percent_disbursed_by_income = crs[,.(mean_percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(IncomegroupName)]
-percent_disbursed_by_income = subset(percent_disbursed_by_income, !is.nan(mean_percent_disbursed))
-percent_disbursed_by_income = percent_disbursed_by_income[order(-percent_disbursed_by_income$mean_percent_disbursed),]
+percent_disbursed_by_income = crs[,.(percent_disbursed=weighted.mean(percent_disbursed, USD_Commitment_Total, na.rm=T)), by=.(IncomegroupName)]
+percent_disbursed_by_income = subset(percent_disbursed_by_income, !is.nan(percent_disbursed))
+percent_disbursed_by_income = percent_disbursed_by_income[order(-percent_disbursed_by_income$percent_disbursed),]
 fwrite(percent_disbursed_by_income, "output/percent_disbursed_by_income.csv")
 percent_disbursed_by_income$IncomegroupName = factor(
   percent_disbursed_by_income$IncomegroupName,
   levels=percent_disbursed_by_income$IncomegroupName
 )
-ggplot(percent_disbursed_by_income, aes(x=IncomegroupName, y=mean_percent_disbursed)) +
+ggplot(percent_disbursed_by_income, aes(x=IncomegroupName, y=percent_disbursed)) +
   geom_bar(stat="identity",fill=reds[1]) +
   scale_y_continuous(expand = c(0, 0), label=percent) +
-  expand_limits(y=c(0, max(percent_disbursed_by_income$mean_percent_disbursed*1.1))) +
+  expand_limits(y=c(0, max(percent_disbursed_by_income$percent_disbursed*1.1))) +
   di_style +
   labs(
     y="Percent of commitments\ndisbursed to date",
@@ -310,3 +339,8 @@ ggplot(percent_disbursed_by_income, aes(x=IncomegroupName, y=mean_percent_disbur
     color=""
   ) +
   rotate_x_text_45
+ggsave(
+  filename="output/percent_disbursed_by_income.png",
+  height=5,
+  width=8
+)

@@ -1,4 +1,4 @@
-label,FlowName,mean_percent_disbursed
+label,FlowName,percent_disbursed
 No adaptation,ODA Grants,0.765225043741554
 Significant adaptation,ODA Grants,0.742039029930835
 No adaptation,ODA Loans,0.698610163586923
